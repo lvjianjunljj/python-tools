@@ -1,6 +1,4 @@
 import sys
-sys.path.append('.')
-sys.path.append('..')
 sys.path.append('..\..')
 import tools.batch_html_to_markdown as bh2m
 import os
