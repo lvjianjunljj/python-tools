@@ -1,3 +1,7 @@
+import sys
+sys.path.append('.')
+sys.path.append('..')
+sys.path.append('..\..')
 import tools.batch_html_to_markdown as bh2m
 import os
 import task.code_intelligence.crawl_data as crawler
@@ -9,8 +13,8 @@ tf_python_dir = r'tensorflow'
 keras_dir = r'keras'
 pytorch_dir = r'pytorch'
 
-root_html_dir = r'.\tree html'
-root_md_dir = r'.\tree md'
+root_html_dir = r'tree_html'
+root_md_dir = r'tree_md'
 
 crawler.crawl_tensor_flow_python_tree_structure(os.path.join(root_html_dir, tf_python_dir), 'gb18030')
 crawler.crawl_keras_tree_structure(os.path.join(root_html_dir, keras_dir), 'gb18030')
