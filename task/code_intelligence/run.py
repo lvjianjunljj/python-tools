@@ -21,7 +21,7 @@ crawler.crawl_pytorch_tree_structure(os.path.join(root_html_dir, pytorch_dir), '
 bh2m.batch_html_to_markdown_save_source(root_html_dir, root_md_dir, '.html', '.md', 'gb18030')
 
 for dir in [keras_dir, pytorch_dir, tf_python_dir]:
-    shutil.copy(r'.\dist.js', os.path.join(root_md_dir, dir, r'dist.js'))
+    shutil.copy(r'dist.js', os.path.join(root_md_dir, dir, r'dist.js'))
     cmd = r'cd "' + os.path.join(root_md_dir, dir) + r'" && node dist.js'
     subprocess.call(cmd, shell=True)
     os.remove(os.path.join(root_md_dir, dir, r'dist.js'))
