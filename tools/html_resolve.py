@@ -33,7 +33,7 @@ def get_element_string_by_class_attribute_first(htmlContent, attribute_value, la
 
 
 def get_simple_tf_content_contains_time(html_content):
-    tf_simple_start_content = r'<h1 itemprop="name" class="devsite-page-title">';
+    tf_simple_start_content = r'<h1 itemprop="name" class="devsite-page-title">'
     tf_simple_mid_content = r'<p class="devsite-content-footer-date" itemprop="datePublished"'
     tf_simple_end_content = r'</div>'
     try:
@@ -56,12 +56,14 @@ def get_keras_content(html_content):
     except ValueError:
         return ''
 
+
 def get_pytorch_content(html_content):
     pytorch_start_content = r'<div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">'
     pytorch_end_content = r'</footer>'
     start_index = html_content.index(pytorch_start_content)
     end_index = html_content.index(pytorch_end_content)
     return html_content[start_index:end_index] + pytorch_end_content
+
 
 def create_dir_by_tf_python_api_strecture(html_content, root_dir_path, encoding):
     soup = BeautifulSoup(html_content, 'html5lib')
@@ -74,26 +76,12 @@ def dfs_create_tf_python_dir(curElement, dir_path, encoding):
         os.makedirs(dir_path)
     children_element = curElement.children
     for child_element in children_element:
-        next_children_element = child_element.children
-        count = 0
-        next_child_0 = None
-        next_child_2 = None
-        while count < 3:
-            try:
-                if count == 0:
-                    next_child_0 = next_children_element.__next__()
-                elif count == 2:
-                    next_child_2 = next_children_element.__next__()
-                else:
-                    next_children_element.__next__()
-                count += 1
-            except StopIteration:
-                break
-        if count == 1:
-            file_path = os.path.join(dir_path, next_child_0.text + ".html")
+        next_children_element = child_element.contents
+        if next_children_element.__len__() == 1:
+            file_path = os.path.join(dir_path, next_children_element[0].text + ".html")
             if os.path.exists(file_path):
                 continue
-            href = next_child_0['href']
+            href = next_children_element[0]['href']
             html_content = crawler.crawl(href)
             tf_content = get_simple_tf_content_contains_time(html_content)
             if tf_content == '':
@@ -102,7 +90,7 @@ def dfs_create_tf_python_dir(curElement, dir_path, encoding):
             else:
                 open(file_path, "w", encoding=encoding).write(tf_content)
         else:
-            dfs_create_tf_python_dir(next_child_2, os.path.join(dir_path, next_child_0.text), encoding)
+            dfs_create_tf_python_dir(next_children_element[2], os.path.join(dir_path, next_children_element[0].text), encoding)
 
 
 def create_dir_by_keras_api_strecture(keras_root_url, html_content, root_dir_path, encoding,
@@ -111,37 +99,17 @@ def create_dir_by_keras_api_strecture(keras_root_url, html_content, root_dir_pat
     root_element = soup.select('ul')[0]
     for element in root_element.children:
         try:
-            children_element = element.children
+            children_element = element.contents
         except AttributeError:
             continue
-        count = 0
-        child_element_0 = None
-        child_element_1 = None
-        child_element_2 = None
-        while count < 3:
-            try:
-                if count == 0:
-                    child_element_0 = children_element.__next__()
-                    if str(child_element_0).replace(' ', '').replace('\n', '') == '':
-                        continue
-                elif count == 1:
-                    child_element_1 = children_element.__next__()
-                    if str(child_element_1).replace(' ', '').replace('\n', '') == '':
-                        continue
-                else:
-                    child_element_2 = children_element.__next__()
-                    if str(child_element_2).replace(' ', '').replace('\n', '') == '':
-                        continue
-                count += 1
-            except StopIteration:
-                break
-        if count == 0:
+        for child_element in children_element:
+            if child_element.replace(' ', '').replace('\n', '') == '':
+                children_element.remove(child_element)
+        if children_element.__len__() == 0:
             continue
-        elif count == 1:
-            next_level_element_list = None
+        elif children_element.__len__() == 1:
             try:
-                next_level_element_list = BeautifulSoup(str(child_element_0), 'html5lib').select('ul')
-                # next_level_element_list = child_element_0.select('ul')
+                next_level_element_list = element.select('ul')
             except AttributeError:
                 continue
             if next_level_element_list.__len__() > 0:
@@ -158,16 +126,17 @@ def create_dir_by_keras_api_strecture(keras_root_url, html_content, root_dir_pat
                         crawl_keras_data_to_local(file_path, href, encoding)
             else:
 
-                file_path = os.path.join(root_dir_path, child_element_0.text.strip() + ".html")
-                href = keras_root_url + child_element_0['href']
+                file_path = os.path.join(root_dir_path, children_element[0].text.strip() + ".html")
+                href = keras_root_url + children_element[0]['href']
                 crawl_keras_data_to_local(file_path, href, encoding)
 
         else:
             # Currently expanded label
-            file_path = os.path.join(root_dir_path, child_element_0.text + ".html")
-            href = keras_root_url + child_element_0['href']
+            file_path = os.path.join(root_dir_path, children_element[0].text + ".html")
+            href = keras_root_url + children_element[0]['href']
             crawl_keras_data_to_local(file_path, href, encoding)
             if download_expanded_label:
+                # TO DO
                 print(download_expanded_label)
 
 
@@ -192,14 +161,13 @@ def create_dir_by_pytorch_api_strecture(pytorch_root_url, html_content, root_dir
     span_name = None
     for root_element in root_elements:
         try:
-            temp =  root_element['class']
+            temp = root_element['class']
             span_name = root_element.text
         except TypeError:
             continue
         except KeyError:
-            dfs_create_pytorch_dir(pytorch_root_url, root_element, os.path.join(root_dir_path, span_name), 1, 1, encoding)
-
-
+            dfs_create_pytorch_dir(pytorch_root_url, root_element, os.path.join(root_dir_path, span_name), 1, 1,
+                                   encoding)
 
 
 def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, max_depth, encoding):
@@ -207,32 +175,18 @@ def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, m
         return
     for child_element in cur_element.children:
         try:
-            next_children_element = child_element.children
+            next_children_element = child_element.contents
         except AttributeError:
+            # Skip blank content
             continue
-        count = 0
-        next_child_element_0 = None
-        next_child_element_1 = None
-        while count < 2:
-            try:
-                if count == 0:
-                    next_child_element_0 = next_children_element.__next__()
-                    if str(next_child_element_0).replace(' ', '').replace('\n', '') == '':
-                        continue
-                else:
-                    next_child_element_1 = next_children_element.__next__()
-                    if str(next_child_element_1).replace(' ', '').replace('\n', '') == '':
-                        continue
-                count += 1
-            except StopIteration:
-                break
-        if count > 1:
-            dfs_create_pytorch_dir(pytorch_root_url, next_child_element_1,
-                                   os.path.join(dir_path, make_file_path_legal(next_child_element_0.text,'_')), cur_depth + 1, max_depth, encoding)
-        file_path = os.path.join(dir_path, make_file_path_legal(next_child_element_0.text, "_") + ".html")
+        if next_children_element.__len__() > 1:
+            dfs_create_pytorch_dir(pytorch_root_url, next_children_element[1],
+                                   os.path.join(dir_path, make_file_path_legal(next_children_element[0].text, '_')),
+                                   cur_depth + 1, max_depth, encoding)
+        file_path = os.path.join(dir_path, make_file_path_legal(next_children_element[0].text, "_") + ".html")
         if (os.path.exists(file_path)):
             continue
-        href = pytorch_root_url + next_child_element_0["href"]
+        href = pytorch_root_url + next_children_element[0]["href"]
         htmlContent = crawler.crawl(href)
         keras_content = get_pytorch_content(htmlContent)
         if (keras_content == ""):
