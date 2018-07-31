@@ -23,6 +23,21 @@ def delete_code_label_in_h(html_content, max_h_level=10):
     return str(soup)
 
 
+def address_relative_to_absolute(html_content, root_url):
+    soup = BeautifulSoup(html_content, 'html5lib')
+    descendants = soup.descendants
+    for descendant in descendants:
+        try:
+            href = descendant['href']
+            if not href.startswith('http'):
+                descendant['href'] = root_url + descendant['href']
+        except TypeError:
+            pass
+        except KeyError:
+            pass
+    return str(soup)
+
+
 def get_element_string_by_class_attribute_first(htmlContent, attribute_value, label_name=''):
     soup = BeautifulSoup(htmlContent, 'html5lib')
     all_elements = soup.select((str)(label_name + r'.' + attribute_value).replace(' ', '.'))
@@ -65,13 +80,13 @@ def get_pytorch_content(html_content):
     return html_content[start_index:end_index] + pytorch_end_content
 
 
-def create_dir_by_tf_python_api_strecture(html_content, root_dir_path, encoding):
+def create_dir_by_tf_python_api_strecture(tf_root_url, html_content, root_dir_path, encoding):
     soup = BeautifulSoup(html_content, 'html5lib')
     root_element = soup.select('ul')[0]
-    dfs_create_tf_python_dir(root_element, root_dir_path, encoding)
+    dfs_create_tf_python_dir(tf_root_url, root_element, root_dir_path, encoding)
 
 
-def dfs_create_tf_python_dir(curElement, dir_path, encoding):
+def dfs_create_tf_python_dir(tf_root_url, curElement, dir_path, encoding):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
     children_element = curElement.children
@@ -82,15 +97,17 @@ def dfs_create_tf_python_dir(curElement, dir_path, encoding):
             if os.path.exists(file_path):
                 continue
             href = next_children_element[0]['href']
-            html_content = crawler.crawl(href)
+            html_content = crawler.crawl(href, encoding)
             tf_content = get_simple_tf_content_contains_time(html_content)
             if tf_content == '':
                 print(r'crawl url"' + href + r'" has error...')
                 print(r'file path is: ' + file_path)
             else:
-                open(file_path, "w", encoding=encoding).write(tf_content)
+                open(file_path, "w", encoding=encoding).write(address_relative_to_absolute(tf_content, tf_root_url))
         else:
-            dfs_create_tf_python_dir(next_children_element[2], os.path.join(dir_path, next_children_element[0].text), encoding)
+            dfs_create_tf_python_dir(tf_root_url, next_children_element[2],
+                                     os.path.join(dir_path, next_children_element[0].text),
+                                     encoding)
 
 
 def create_dir_by_keras_api_strecture(keras_root_url, html_content, root_dir_path, encoding,
@@ -123,36 +140,36 @@ def create_dir_by_keras_api_strecture(keras_root_url, html_content, root_dir_pat
                     else:
                         file_path = os.path.join(root_dir_path, label_name, li_element.text.strip() + ".html")
                         href = keras_root_url + li_element.select("a")[0]["href"]
-                        crawl_keras_data_to_local(file_path, href, encoding)
+                        crawl_keras_data_to_local(keras_root_url, file_path, href, encoding)
             else:
 
                 file_path = os.path.join(root_dir_path, children_element[0].text.strip() + ".html")
                 href = keras_root_url + children_element[0]['href']
-                crawl_keras_data_to_local(file_path, href, encoding)
+                crawl_keras_data_to_local(keras_root_url, file_path, href, encoding)
 
         else:
             # Currently expanded label
             file_path = os.path.join(root_dir_path, children_element[0].text + ".html")
             href = keras_root_url + children_element[0]['href']
-            crawl_keras_data_to_local(file_path, href, encoding)
+            crawl_keras_data_to_local(keras_root_url, file_path, href, encoding)
             if download_expanded_label:
                 # TO DO
                 print(download_expanded_label)
 
 
-def crawl_keras_data_to_local(file_path, href, encoding):
+def crawl_keras_data_to_local(keras_root_url, file_path, href, encoding):
     file_path = file_path.replace('\n', '')
     if os.path.exists(file_path):
         return
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
-    html_content = crawler.crawl(href)
+    html_content = crawler.crawl(href, encoding)
     keras_content = get_keras_content(html_content)
     if keras_content == '':
         print(r'crawl url"' + href + r'" has error...')
         print(r'file path is: ' + file_path)
     else:
-        open(file_path, "w", encoding=encoding).write(keras_content)
+        open(file_path, "w", encoding=encoding).write(address_relative_to_absolute(keras_content, keras_root_url))
 
 
 def create_dir_by_pytorch_api_strecture(pytorch_root_url, html_content, root_dir_path, encoding):
@@ -187,15 +204,16 @@ def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, m
         if (os.path.exists(file_path)):
             continue
         href = pytorch_root_url + next_children_element[0]["href"]
-        htmlContent = crawler.crawl(href)
-        keras_content = get_pytorch_content(htmlContent)
-        if (keras_content == ""):
+        htmlContent = crawler.crawl(href, encoding)
+        pytorch_content = get_pytorch_content(htmlContent)
+        if (pytorch_content == ""):
             print(r'crawl url"' + href + r'" has error...')
             print("file path is: " + file_path)
         else:
             if not os.path.exists(os.path.dirname(file_path)):
                 os.makedirs(os.path.dirname(file_path))
-            open(file_path, "w", encoding=encoding).write(keras_content)
+            open(file_path, "w", encoding=encoding).write(
+                address_relative_to_absolute(pytorch_content, pytorch_root_url))
 
 
 def make_file_path_legal(path_str, replace_str):
