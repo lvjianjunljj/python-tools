@@ -1,11 +1,14 @@
 import sys
 
 sys.path.append('../..')
-import tools.batch_html_to_markdown as bh2m
+
+import json
 import os
-import task.code_intelligence.crawl_data as crawler
-import subprocess
+import re
 import shutil
+import subprocess
+import task.code_intelligence.crawl_data as crawler
+import tools.batch_html_to_markdown as bh2m
 import tools.file_compress as file_compress
 import tools.markdown_resolve as mr
 
@@ -17,17 +20,41 @@ pytorch_dir = r'PyTorch'
 root_html_dir = r'tree_html'
 root_md_dir = r'tree_md'
 
-crawler.crawl_tensor_flow_python_tree_structure(os.path.join(root_html_dir, tf_python_dir), encoding)
-crawler.crawl_keras_tree_structure(os.path.join(root_html_dir, keras_dir), encoding)
-crawler.crawl_pytorch_tree_structure(os.path.join(root_html_dir, pytorch_dir), encoding)
+path_list = dict()
+path_list[tf_python_dir.lower()] = []
+path_list[keras_dir.lower()] = []
+path_list[pytorch_dir.lower()] = []
 
-bh2m.batch_html_to_markdown_save_source(root_html_dir, root_md_dir, '.html', '.md', encoding)
-mr.batch_remove_table_extra_line_break(root_md_dir, encoding)
-mr.batch_latex_to_embedded_html(root_md_dir)
+crawler.crawl_tensor_flow_python_tree_structure(os.path.join(root_html_dir, tf_python_dir), path_list[tf_python_dir.lower()], encoding)
+crawler.crawl_keras_tree_structure(os.path.join(root_html_dir, keras_dir), path_list[keras_dir.lower()], encoding)
+crawler.crawl_pytorch_tree_structure(os.path.join(root_html_dir, pytorch_dir), path_list[pytorch_dir.lower()], encoding)
 
-for dir in [keras_dir, pytorch_dir, tf_python_dir]:
-    shutil.copy(r'generate_index.js', os.path.join(root_md_dir, dir, r'generate_index.js'))
-    cmd = r'cd "' + os.path.join(root_md_dir, dir) + r'" && node generate_index.js'
+replace_reg = re.compile(r'.html$')
+for index in path_list:
+    for i in range(path_list[index].__len__()):
+        path_list[index][i] = replace_reg.sub(r'.md', path_list[index][i][root_html_dir.__len__() + 1:path_list[index][i].__len__()])
+
+# open(r'single_backslash.json', "w", encoding='utf-8').write(json.dumps(path_list).replace('\\\\','\\'))
+open(r'double_backslash.json', "w", encoding='utf-8').write(json.dumps(path_list))
+#
+# open(r'double_slash.json', "w", encoding='utf-8').write(json.dumps(path_list).replace('\\','/'))
+
+# open(r'single_slash.json', "w", encoding='utf-8').write(json.dumps(path_list).replace('\\\\', '\\').replace('\\', '/'))
+
+bh2m.batch_html_to_markdown_save_source(root_html_dir, root_md_dir, '.html', '.md', 0, encoding)
+
+system_name = sys.platform.system()
+if (system_name == "Windows"):
+    mr.batch_latex_to_embedded_html(root_md_dir, r'windows_cmd')
+    # mr.batch_latex_to_embedded_html(root_md_dir, r'windows_powershell')
+elif (system_name == "Linux"):
+    mr.batch_latex_to_embedded_html(root_md_dir, r'linux')
+else:
+    mr.batch_latex_to_embedded_html(root_md_dir, r'others')
+
+for simple_dir in [keras_dir, pytorch_dir, tf_python_dir]:
+    shutil.copy(r'generate_index.js', os.path.join(root_md_dir, simple_dir, r'generate_index.js'))
+    cmd = r'cd "' + os.path.join(root_md_dir, simple_dir) + r'" && node generate_index.js'
     subprocess.call(cmd, shell=True)
-    os.remove(os.path.join(root_md_dir, dir, r'generate_index.js'))
-    file_compress.make_targz(os.path.join(root_md_dir, dir + r'.tar.gz'), os.path.join(root_md_dir, dir))
+    os.remove(os.path.join(root_md_dir, simple_dir, r'generate_index.js'))
+    file_compress.make_targz(os.path.join(root_md_dir, simple_dir.lower() + r'.tar.gz'), os.path.join(root_md_dir, simple_dir))

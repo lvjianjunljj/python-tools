@@ -4,11 +4,11 @@
 import html2text as ht  # pip install html2text
 
 
-def html_to_text_by_path(input_path, output_path, encoding='UTF-8'):
+def html_to_text_by_path(input_path, output_path, body_width, encoding='UTF-8'):
     text_maker = ht.HTML2Text()
     # text_maker.ignore_links = True
     text_maker.bypass_tables = False
-    # path ="D:\\1.html"
+    text_maker.body_width = body_width
     html_file = open(input_path, 'r', encoding=encoding, errors='ignore')
     html_page = html_file.read()
     for i in range(10):
