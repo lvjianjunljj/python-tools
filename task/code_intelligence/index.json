@@ -1,17 +1,1 @@
-{
-  "keras": {
-    "version": 2,
-    "file": "keras.tar.gz",
-    "size": "496778"
-  },
-  "pytorch": {
-    "version": 2,
-    "file": "pytorch.tar.gz",
-    "size": "2062967"
-  },
-  "tensorflow": {
-    "version": 2,
-    "file": "tensorflow.tar.gz",
-    "size": "49190384"
-  }
-}
+{"Keras": {"version": 3, "file": "keras.tar.gz", "size": "1.65 MiB"}, "PyTorch": {"version": 3, "file": "pytorch.tar.gz", "size": "5.75 MiB"}, "TensorFlow": {"version": 3, "file": "tensorflow.tar.gz", "size": "46.9 MiB"}}
