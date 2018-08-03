@@ -1,0 +1,17 @@
+{
+  "keras": {
+    "version": 2,
+    "file": "keras.tar.gz",
+    "size": "496778"
+  },
+  "pytorch": {
+    "version": 2,
+    "file": "pytorch.tar.gz",
+    "size": "2062967"
+  },
+  "tensorflow": {
+    "version": 2,
+    "file": "tensorflow.tar.gz",
+    "size": "49190384"
+  }
+}

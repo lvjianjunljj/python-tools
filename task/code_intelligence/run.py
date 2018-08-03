@@ -21,36 +21,26 @@ root_html_dir = r'tree_html'
 root_md_dir = r'tree_md'
 
 path_list = dict()
-path_list[tf_python_dir.lower()] = []
-path_list[keras_dir.lower()] = []
-path_list[pytorch_dir.lower()] = []
+path_list[tf_python_dir] = []
+path_list[keras_dir] = []
+path_list[pytorch_dir] = []
 
-crawler.crawl_tensor_flow_python_tree_structure(os.path.join(root_html_dir, tf_python_dir), path_list[tf_python_dir.lower()], encoding)
-crawler.crawl_keras_tree_structure(os.path.join(root_html_dir, keras_dir), path_list[keras_dir.lower()], encoding)
-crawler.crawl_pytorch_tree_structure(os.path.join(root_html_dir, pytorch_dir), path_list[pytorch_dir.lower()], encoding)
+crawler.crawl_tensor_flow_python_tree_structure(os.path.join(root_html_dir, tf_python_dir), path_list[tf_python_dir], encoding)
+crawler.crawl_keras_tree_structure(os.path.join(root_html_dir, keras_dir), path_list[keras_dir], encoding)
+crawler.crawl_pytorch_tree_structure(os.path.join(root_html_dir, pytorch_dir), path_list[pytorch_dir], encoding)
+
+bh2m.batch_html_to_markdown_save_source(root_html_dir, root_md_dir, '.html', '.md', 0, encoding)
 
 replace_reg = re.compile(r'.html$')
 for index in path_list:
     for i in range(path_list[index].__len__()):
-        path_list[index][i] = replace_reg.sub(r'.md', path_list[index][i][root_html_dir.__len__() + 1:path_list[index][i].__len__()])
+        path_list[index][i] = replace_reg.sub(r'.md', path_list[index][i][root_html_dir.__len__() + index.__len__() + 2:path_list[index][i].__len__()])
+    open(os.path.join(root_md_dir, index, r'sidebar.json'), "w", encoding='utf-8').write(json.dumps(path_list[index]).replace('\\\\', '\\').replace('\\', '/'))
 
 # open(r'single_backslash.json', "w", encoding='utf-8').write(json.dumps(path_list).replace('\\\\','\\'))
-open(r'double_backslash.json', "w", encoding='utf-8').write(json.dumps(path_list))
-#
-# open(r'double_slash.json', "w", encoding='utf-8').write(json.dumps(path_list).replace('\\','/'))
 
-# open(r'single_slash.json', "w", encoding='utf-8').write(json.dumps(path_list).replace('\\\\', '\\').replace('\\', '/'))
 
-bh2m.batch_html_to_markdown_save_source(root_html_dir, root_md_dir, '.html', '.md', 0, encoding)
-
-system_name = sys.platform.system()
-if (system_name == "Windows"):
-    mr.batch_latex_to_embedded_html(root_md_dir, r'windows_cmd')
-    # mr.batch_latex_to_embedded_html(root_md_dir, r'windows_powershell')
-elif (system_name == "Linux"):
-    mr.batch_latex_to_embedded_html(root_md_dir, r'linux')
-else:
-    mr.batch_latex_to_embedded_html(root_md_dir, r'others')
+mr.batch_latex_to_embedded_html(root_md_dir)
 
 for simple_dir in [keras_dir, pytorch_dir, tf_python_dir]:
     shutil.copy(r'generate_index.js', os.path.join(root_md_dir, simple_dir, r'generate_index.js'))

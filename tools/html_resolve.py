@@ -21,7 +21,6 @@ def delete_code_label_in_h(html_content, max_h_level=10):
             child_h.string = child_h.string.replace('<code>', '').replace('</code>', '')
     return str(soup)
 
-
 def address_relative_to_absolute(html_content, root_url):
     soup = BeautifulSoup(html_content, 'html5lib')
     descendants = soup.descendants
@@ -245,7 +244,7 @@ def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, m
             print(r'crawl url"' + href + r'" has error...')
             print("file path is: " + file_path)
         else:
-            open(file_path, "w", encoding=encoding).write(address_relative_to_absolute(pytorch_content, pytorch_root_url))
+            open(file_path, "w", encoding=encoding).write(del_attr_all(address_relative_to_absolute(pytorch_content, pytorch_root_url), 'title'))
 
 
 def make_file_path_legal(path_str, replace_str):
