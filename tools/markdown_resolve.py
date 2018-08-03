@@ -15,7 +15,7 @@ def batch_latex_to_embedded_html(input_root_dir):
                 # if you use PowerShell
                 # cmd += r'">$null'
             elif system_name == "Linux":
-                cmd += r'"/dev/null'
+                cmd += r'">/dev/null'
             else:
                 # other system
                 cmd += r'"'

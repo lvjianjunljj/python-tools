@@ -13,7 +13,7 @@ import tools.file_compress as file_compress
 import tools.file_size as file_size
 import tools.markdown_resolve as mr
 
-# ther version of every api doc
+# the version of every api doc
 index_version = 3
 
 encoding = r'utf-8'
