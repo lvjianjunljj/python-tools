@@ -12,4 +12,7 @@ def crawl(url, encoding='utf-8'):
         return result
     except urllib.error.HTTPError:
         return ''
-
+    except TimeoutError:
+        return ''
+    except urllib.error.URLError:
+        return ''
