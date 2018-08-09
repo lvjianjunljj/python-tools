@@ -16,3 +16,5 @@ def crawl(url, encoding='utf-8'):
         return ''
     except urllib.error.URLError:
         return ''
+    except UnicodeDecodeError:
+        return ''

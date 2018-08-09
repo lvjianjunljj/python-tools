@@ -234,8 +234,9 @@ def external_links_convert(md_input_content):
     if link_content == '':
         return button_content
     else:
+        on_click_content = escapeHtml(r'vscodeai_open(\'{0}\')'.format(link))
         return escapeHtml(
-            r'<a onClick="vscodeai_open(\'{1}\')"style="cursor: pointer">{0}</a>'.format(button_content, link))
+            r'<a onClick="{1}" style="cursor: pointer">{0}</a>'.format(button_content, on_click_content))
 
 
 def escapeHtml(unsafe):
