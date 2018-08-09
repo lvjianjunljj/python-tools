@@ -230,16 +230,17 @@ def batch_external_links_convert(root_dir, encoding):
 def external_links_convert(md_input_content):
     button_content = md_input_content[1:md_input_content.index(']')]
     link = md_input_content[md_input_content.index(']') + 2:md_input_content.__len__() - 1]
-    link_content = crawler.crawl(link)
-    if link_content == '':
-        return button_content
-    else:
-        on_click_content = escapeHtml(r'vscodeai_open(\'{0}\')'.format(link))
-        return escapeHtml(
-            r'<a onClick="{1}" style="cursor: pointer">{0}</a>'.format(button_content, on_click_content))
+
+    # TO DO, it cost much time to confirm the availability of the link by http post
+    # link_content = crawler.crawl(link)
+    # if link_content == '':
+    #     return button_content
+    # else:
+    on_click_content = escape_html(r'vscodeai_open(\'{0}\')'.format(link))
+    return r'<a onClick="{1}" style="cursor: pointer">{0}</a>'.format(button_content, on_click_content)
 
 
-def escapeHtml(unsafe):
+def escape_html(unsafe):
     return unsafe.replace(r'&', '&amp;'). \
         replace(r'<', '&lt;'). \
         replace(r'>', '&gt;'). \

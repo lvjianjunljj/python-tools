@@ -14,7 +14,7 @@ import tools.file_size as file_size
 import tools.markdown_resolve as mr
 
 # the version of every api doc
-index_version = 5
+index_version = 6
 
 tf_python_root_url = r'https://www.tensorflow.org/api_docs/python/'
 keras_root_url = r'https://keras.io/'
