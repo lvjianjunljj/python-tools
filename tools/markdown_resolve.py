@@ -3,7 +3,7 @@ import subprocess
 import platform
 import tools.crawler as crawler
 import re
-
+import urllib.request
 
 def batch_latex_to_embedded_html(input_root_dir):
     system_name = platform.system()
@@ -44,7 +44,14 @@ def internal_links_convert(root_dir, framework_name, framework_root_url, href_pa
                 while True:
                     start_index = markdown_content.index(start_content, end_index)
                     res_markdown_content += markdown_content[end_index:start_index + 1]
-                    end_index = markdown_content.index(end_content, start_index)
+                    brackets_difference_count = 1
+                    end_index = start_index
+                    while  brackets_difference_count > 0:
+                        end_index += 1
+                        if markdown_content[end_index] == r'(':
+                            brackets_difference_count += 1
+                        elif markdown_content[end_index] == r')':
+                            brackets_difference_count -= 1
 
                     if framework_name == r'TensorFlow':
                         res_markdown_content += tensor_flow_internal_links_convert(framework_name,
@@ -117,7 +124,7 @@ def tensor_flow_internal_links_convert(framework_name, href_path_dict, old_link)
     except ValueError:
         pass
     try:
-        res_path = href_path_dict[index_link]
+        res_path = urllib.request.quote(href_path_dict[index_link])
         # Minus three is to eliminate the point and extension name 'md'
         return framework_name + r'/' + res_path[0:res_path.__len__() - 3] + (
             '' if last_title_content == None else r'?id=' + last_title_content)
@@ -162,7 +169,7 @@ def keras_internal_links_convert(framework_name, href_path_dict, old_link):
             # print(old_link)
             return old_link
         else:
-            res_path = href_path_dict[matching_href]
+            res_path = urllib.request.quote(href_path_dict[matching_href])
             # Minus three is to eliminate the point and extension name 'md'
             return framework_name + r'/' + res_path[0:res_path.__len__() - 3] + ('' if last_title_content == None else (
                     r'?id=' + last_title_content[1:last_title_content.__len__()]) if last_title_content.startswith(
@@ -190,7 +197,7 @@ def pytorch_internal_links_convert(framework_name, href_path_dict, old_link):
     except ValueError:
         pass
     try:
-        res_path = href_path_dict[index_link]
+        res_path = urllib.request.quote(href_path_dict[index_link])
         # Minus three is to eliminate the point and extension name 'md'
         return framework_name + r'/' + res_path[0:res_path.__len__() - 3] + (
             '' if last_title_content == None else r'?id=' + last_title_content)
@@ -230,7 +237,11 @@ def batch_external_links_convert(root_dir, encoding):
 def external_links_convert(md_input_content):
     button_content = md_input_content[1:md_input_content.index(']')]
     link = md_input_content[md_input_content.index(']') + 2:md_input_content.__len__() - 1]
-
+    # not do anything with the link to the image
+    if link.lower().endswith('png') or link.lower().endswith('bmp') or link.lower().endswith('gif') \
+            or link.lower().endswith('jpeg') or link.lower().endswith('jpg') or link.lower().endswith('tiff') \
+            or link.lower().endswith('psd'):
+        return md_input_content
     # TO DO, it cost much time to confirm the availability of the link by http post
     # link_content = crawler.crawl(link)
     # if link_content == '':
