@@ -5,6 +5,7 @@ import tools.crawler as crawler
 import re
 import urllib.request
 
+
 def batch_latex_to_embedded_html(input_root_dir):
     system_name = platform.system()
     list_dirs = os.walk(input_root_dir)
@@ -25,10 +26,9 @@ def batch_latex_to_embedded_html(input_root_dir):
 
 
 # Convert internal links to document relative addresses
-def internal_links_convert(root_dir, framework_name, framework_root_url, href_path_dict, encoding):
+def internal_links_convert(root_dir, framework_name, href_path_dict, encoding):
     framework_dir = os.path.join(root_dir, framework_name)
-    end_content = r')'
-    start_content = r'(' + framework_root_url
+    start_content = r'(http'
 
     list_dirs = os.walk(framework_dir)
     for root, dirs, files in list_dirs:
@@ -46,7 +46,7 @@ def internal_links_convert(root_dir, framework_name, framework_root_url, href_pa
                     res_markdown_content += markdown_content[end_index:start_index + 1]
                     brackets_difference_count = 1
                     end_index = start_index
-                    while  brackets_difference_count > 0:
+                    while brackets_difference_count > 0:
                         end_index += 1
                         if markdown_content[end_index] == r'(':
                             brackets_difference_count += 1
@@ -210,6 +210,7 @@ def pytorch_internal_links_convert(framework_name, href_path_dict, old_link):
 
 def batch_external_links_convert(root_dir, encoding):
     list_dirs = os.walk(root_dir)
+    index_content = r'](http'
     for root, dirs, files in list_dirs:
         for file_name in files:
             if not file_name.endswith(r'.md'):
@@ -217,26 +218,62 @@ def batch_external_links_convert(root_dir, encoding):
             input_file_full_path = os.path.join(root, file_name)
             markdown_file = open(input_file_full_path, 'r', encoding=encoding, errors='ignore')
             markdown_content = markdown_file.read()
-            regular_expression = r'\[[^[\]]*?\]\(https{0,1}://.*?\)'
+            # we should get the string like [[example]](https://exaple)
+            # and also eliminate the first [example] in string [example][example](https://exaple)
+            # so we discard the use of regular expressions and use count difference between left bracket and right bracket
+            # regular_expression = r'\[[^[\]]*?\]\(https{0,1}://.*?\)'
+            # end_index = 0
+            # res_markdown_content = ''
+            # try:
+            #     while True:
+            #         search_res = re.search(regular_expression, markdown_content[end_index:]).span()
+            #         start_index = search_res[0] + end_index
+            #         res_markdown_content += markdown_content[end_index:start_index]
+            #         end_index += search_res[1]
+            #         res_markdown_content += external_links_convert(markdown_content[start_index:end_index])
+            #
+            # except AttributeError:
+            #     res_markdown_content += markdown_content[end_index:]
+            #     pass
             end_index = 0
             res_markdown_content = ''
             try:
+                # pay attention to the difference of the Initial and final values of index for each cycle with internal
+                # the old_link parameter of internal links convert does not contain brackets
+                # but the old_link parameter of external links convert contain brackets
                 while True:
-                    search_res = re.search(regular_expression, markdown_content[end_index:]).span()
-                    start_index = search_res[0] + end_index
+                    index = markdown_content.index(index_content, end_index)
+                    start_index = index
+                    brackets_difference_count = 1
+                    while brackets_difference_count > 0:
+                        start_index -= 1
+                        if markdown_content[start_index] == r']':
+                            brackets_difference_count += 1
+                        elif markdown_content[start_index] == r'[':
+                            brackets_difference_count -= 1
                     res_markdown_content += markdown_content[end_index:start_index]
-                    end_index += search_res[1]
+                    brackets_difference_count = 1
+                    end_index = index + 2
+                    while brackets_difference_count > 0:
+                        if markdown_content[end_index] == r'(':
+                            brackets_difference_count += 1
+                        elif markdown_content[end_index] == r')':
+                            brackets_difference_count -= 1
+                        end_index += 1
                     res_markdown_content += external_links_convert(markdown_content[start_index:end_index])
-
-            except AttributeError:
-                res_markdown_content += markdown_content[end_index:]
+            except ValueError:
+                res_markdown_content += markdown_content[end_index:markdown_content.__len__()]
+                pass
+            except IndexError:
+                print('file "{0}" has error in external links convert'.format('test'))
                 pass
             open(input_file_full_path, "w", encoding=encoding).write(res_markdown_content)
 
 
 def external_links_convert(md_input_content):
-    button_content = md_input_content[1:md_input_content.index(']')]
-    link = md_input_content[md_input_content.index(']') + 2:md_input_content.__len__() - 1]
+    index = md_input_content.index('](http')
+    button_content = md_input_content[1:index]
+    link = md_input_content[index + 2:md_input_content.__len__() - 1]
     # not do anything with the link to the image
     if link.lower().endswith('png') or link.lower().endswith('bmp') or link.lower().endswith('gif') \
             or link.lower().endswith('jpeg') or link.lower().endswith('jpg') or link.lower().endswith('tiff') \
@@ -251,8 +288,8 @@ def external_links_convert(md_input_content):
     return r'<a onClick="{1}" style="cursor: pointer">{0}</a>'.format(button_content, on_click_content)
 
 
-def escape_html(unsafe):
-    return unsafe.replace(r'&', '&amp;'). \
+def escape_html(unsafe_content):
+    return unsafe_content.replace(r'&', '&amp;'). \
         replace(r'<', '&lt;'). \
         replace(r'>', '&gt;'). \
         replace(r'"', '&quot;'). \

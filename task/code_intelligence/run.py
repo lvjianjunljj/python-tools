@@ -14,7 +14,7 @@ import tools.file_size as file_size
 import tools.markdown_resolve as mr
 
 # the version of every api doc
-index_version = 6
+index_version = 7
 
 tf_python_root_url = r'https://www.tensorflow.org/api_docs/python/'
 keras_root_url = r'https://keras.io/'
@@ -66,8 +66,7 @@ json_read = open(r'index.json', 'r', encoding='utf-8', errors='ignore')
 json_str = json_read.read()
 index_dict = eval(json_str)
 
-for framework_name, framework_root_url in [[keras_dir, keras_root_url], [pytorch_dir, pytorch_root_url],
-                                           [tf_python_dir, tf_python_root_url]]:
+for framework_name in [keras_dir, pytorch_dir, tf_python_dir]:
     # generate index.json file
     shutil.copy(r'generate_index.js', os.path.join(root_md_dir, framework_name, r'generate_index.js'))
     cmd = r'cd "' + os.path.join(root_md_dir, framework_name) + r'" && node generate_index.js'
@@ -75,8 +74,7 @@ for framework_name, framework_root_url in [[keras_dir, keras_root_url], [pytorch
     os.remove(os.path.join(root_md_dir, framework_name, r'generate_index.js'))
 
     # convert the internal links
-    mr.internal_links_convert(root_md_dir, framework_name, framework_root_url, href_path_dict_list[framework_name],
-                              encoding)
+    mr.internal_links_convert(root_md_dir, framework_name, href_path_dict_list[framework_name], encoding)
 
     # convert the internal links in every framework directory
     mr.batch_external_links_convert(os.path.join(root_md_dir, framework_name), encoding)
