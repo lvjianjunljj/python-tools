@@ -7,11 +7,12 @@ import os
 import re
 import shutil
 import subprocess
-import task.code_intelligence.crawl_data as crawler
 import tools.html_to_markdown as h2m
-import tools.file_compress as file_compress
-import tools.file_size as file_size
 import tools.markdown_resolve as mr
+from task.code_intelligence import crawl_data
+from tools import file_size
+from tools import file_compress
+from collections import OrderedDict
 
 # the version of every api doc
 index_version = 7
@@ -30,20 +31,18 @@ pytorch_dir = r'PyTorch'
 root_html_dir = r'tree_html'
 root_md_dir = r'tree_md'
 
-href_file_path_dict = dict()
-
 href_path_dict_list = dict()
-href_path_dict_list[tf_python_dir] = dict()
-href_path_dict_list[keras_dir] = dict()
-href_path_dict_list[pytorch_dir] = dict()
+href_path_dict_list[tf_python_dir] = OrderedDict()
+href_path_dict_list[keras_dir] = OrderedDict()
+href_path_dict_list[pytorch_dir] = OrderedDict()
 
-crawler.crawl_tensor_flow_python_tree_structure(tf_python_root_url,
-                                                os.path.join(root_html_dir, tf_python_dir),
-                                                href_path_dict_list[tf_python_dir], encoding)
-crawler.crawl_keras_tree_structure(keras_root_url, os.path.join(root_html_dir, keras_dir),
-                                   href_path_dict_list[keras_dir], encoding)
-crawler.crawl_pytorch_tree_structure(pytorch_root_url, os.path.join(root_html_dir, pytorch_dir),
-                                     href_path_dict_list[pytorch_dir], encoding)
+crawl_data.crawl_tensor_flow_python_tree_structure(tf_python_root_url,
+                                                   os.path.join(root_html_dir, tf_python_dir),
+                                                   href_path_dict_list[tf_python_dir], encoding)
+crawl_data.crawl_keras_tree_structure(keras_root_url, os.path.join(root_html_dir, keras_dir),
+                                      href_path_dict_list[keras_dir], encoding)
+crawl_data.crawl_pytorch_tree_structure(pytorch_root_url, os.path.join(root_html_dir, pytorch_dir),
+                                        href_path_dict_list[pytorch_dir], encoding)
 
 h2m.batch_html_to_markdown_save_source(root_html_dir, root_md_dir, '.html', '.md', 0, encoding)
 mr.batch_latex_to_embedded_html(root_md_dir)

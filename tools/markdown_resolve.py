@@ -1,8 +1,6 @@
 import os
 import subprocess
 import platform
-import tools.crawler as crawler
-import re
 import urllib.request
 
 

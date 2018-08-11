@@ -1,5 +1,5 @@
 import tools.html_resolve as hr
-import tools.crawler as crawler
+from tools import crawler
 
 
 def crawl_tensor_flow_python_tree_structure(tf_python_root_url, tf_python_root_dir, tf_python_href_path_dict, encoding='utf-8'):

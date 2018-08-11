@@ -1,6 +1,6 @@
-from bs4 import BeautifulSoup
 import os
-import tools.crawler as crawler
+from bs4 import BeautifulSoup
+from tools import crawler
 
 
 def push_h_down_one_level(html_content, max_h_level=10):
