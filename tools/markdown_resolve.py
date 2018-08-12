@@ -2,7 +2,7 @@ import os
 import subprocess
 import platform
 import urllib.request
-
+import re
 
 def batch_latex_to_embedded_html(input_root_dir):
     system_name = platform.system()
@@ -21,6 +21,38 @@ def batch_latex_to_embedded_html(input_root_dir):
                 # other system
                 cmd += r'"'
             subprocess.call(cmd, shell=True)
+
+
+def batch_clean_title(root_dir, encoding):
+    list_dirs = os.walk(root_dir)
+    for root, dirs, files in list_dirs:
+        for file_name in files:
+            if not file_name.endswith(r'.md'):
+                continue
+            input_file_full_path = os.path.join(root, file_name)
+            markdown_file = open(input_file_full_path, 'r', encoding=encoding, errors='ignore')
+            line = markdown_file.readline()
+            regular_expression = r'\[.*?\]\(.*?\)'
+            write_content = ''
+            while line:
+                if line.startswith(r'##'):
+                    try:
+                        search_res = re.search(regular_expression, line).span()
+                        start_index = search_res[0] + 1
+                        end_index = search_res[0]
+                        buckets_difference = 1
+                        while buckets_difference > 0:
+                            end_index += 1
+                            if line[end_index] == '[':
+                                buckets_difference += 1
+                            elif line[end_index] == ']':
+                                buckets_difference -= 1
+                        line = line[0:start_index - 1] + line[start_index:end_index]
+                    except AttributeError:
+                        pass
+                write_content += line
+                line = markdown_file.readline()
+            open(input_file_full_path, "w", encoding=encoding).write(write_content)
 
 
 # Convert internal links to document relative addresses

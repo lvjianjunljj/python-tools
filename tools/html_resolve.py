@@ -236,6 +236,7 @@ def create_dir_by_pytorch_api_strecture(pytorch_root_url, html_content, root_dir
                                         encoding):
     if not os.path.exists(root_dir_path):
         os.makedirs(root_dir_path)
+
     # Manually crawl the root url page
     htmlContent = crawler.crawl(pytorch_root_url, encoding)
     pytorch_content = get_pytorch_content(htmlContent)
@@ -243,6 +244,7 @@ def create_dir_by_pytorch_api_strecture(pytorch_root_url, html_content, root_dir
     pytorch_href_path_dict[pytorch_root_url] = pytorch_home_page_file_path
     open(pytorch_home_page_file_path, "w", encoding=encoding).write(del_content_with_mark(del_attr_all(
         address_relative_to_absolute(pytorch_content, pytorch_root_url), 'title'), '¶'))
+
     soup = BeautifulSoup(html_content, 'html5lib')
     root_elements = soup.select('div')[0].children
     span_name = None
@@ -253,7 +255,7 @@ def create_dir_by_pytorch_api_strecture(pytorch_root_url, html_content, root_dir
         except TypeError:
             continue
         except KeyError:
-            dfs_create_pytorch_dir(pytorch_root_url, root_element, os.path.join(root_dir_path, span_name), 1, 1,
+            dfs_create_pytorch_dir(pytorch_root_url, root_element, os.path.join(root_dir_path, span_name), 1, 2,
                                    pytorch_href_path_dict, encoding)
 
 
@@ -269,18 +271,27 @@ def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, m
         except AttributeError:
             # Skip blank content
             continue
-        if next_children_element.__len__() > 1:
-            dfs_create_pytorch_dir(pytorch_root_url, next_children_element[1],
-                                   os.path.join(dir_path, make_file_path_legal(next_children_element[0].text, '_')),
-                                   cur_depth + 1, max_depth,
-                                   pytorch_href_path_dict, encoding)
         file_path = os.path.join(dir_path, make_file_path_legal(next_children_element[0].text, "_") + ".html")
         href = pytorch_root_url + next_children_element[0]["href"]
+
+        # avoid to crawl the repeated page
+        try:
+            href = href[0:href.index('#')]
+            if pytorch_href_path_dict.__contains__(href):
+                continue
+        except ValueError:
+            pass
+
         # if not file_path in pytorch_path_list:
         #     pytorch_path_list.append(file_path)
         # else:
         #     print(r'write to path_list has repeated data, file path i : "' + file_path + r'"')
         pytorch_href_path_dict[href] = file_path
+        if next_children_element.__len__() > 1:
+            dfs_create_pytorch_dir(pytorch_root_url, next_children_element[1],
+                                   os.path.join(dir_path, make_file_path_legal(next_children_element[0].text, '_')),
+                                   cur_depth + 1, max_depth,
+                                   pytorch_href_path_dict, encoding)
         if (os.path.exists(file_path)):
             continue
         htmlContent = crawler.crawl(href, encoding)
@@ -292,7 +303,11 @@ def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, m
             open(file_path, "w", encoding=encoding).write(
                 del_content_with_mark(
                     del_attr_all(address_relative_to_absolute(pytorch_content, pytorch_root_url), 'title'), '¶'))
-
+    # delete the empty directory
+    try:
+        os.removedirs(dir_path)
+    except OSError:
+        pass
 
 def make_file_path_legal(path_str, replace_str):
     return path_str.replace('\\', replace_str). \

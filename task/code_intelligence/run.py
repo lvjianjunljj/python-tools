@@ -82,6 +82,9 @@ for framework_name in [keras_dir, pytorch_dir, tf_python_dir]:
     index_dict[framework_name]['size'] = file_size.get_dirs_size(os.path.join(root_md_dir, framework_name))
     index_dict[framework_name]['version'] = index_version
 
+    # delete the hyperlink in title
+    mr.batch_clean_title(os.path.join(root_md_dir, framework_name), encoding)
+
     # package the directory
     file_compress.make_targz(os.path.join(root_md_dir, framework_name.lower() + r'.tar.gz'),
                              os.path.join(root_md_dir, framework_name))
