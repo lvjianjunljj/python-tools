@@ -65,25 +65,17 @@ def del_attr_all(html_content, attr):
 
 def del_content_with_mark(html_content, mark_str):
     soup = BeautifulSoup(html_content, 'html5lib')
-    # label_list = soup.select(label_name)
-    # for label_unit in label_list:
-    #     for content in label_unit.contents:
-    #         try:
-    #             if content.text.replace(' ', '').replace('\n', '').replace('\t', '') == mark_str:
-    #                 label_unit.contents.remove(content)
-    #         except AttributeError:
-    #             pass
-    dfs_content_with_mark(soup, mark_str)
+    dfs_del_content_with_mark(soup, mark_str)
     return str(soup)
 
 
-def dfs_content_with_mark(html_element, mark_str):
+def dfs_del_content_with_mark(html_element, mark_str):
     for content in html_element.contents:
         try:
             if content.text.replace(' ', '').replace('\n', '').replace('\t', '') == mark_str:
                 html_element.contents.remove(content)
             else:
-                dfs_content_with_mark(content, mark_str)
+                dfs_del_content_with_mark(content, mark_str)
         except AttributeError:
             pass
 
@@ -145,10 +137,6 @@ def dfs_create_tf_python_dir(tf_root_url, curElement, dir_path, tf_python_href_p
         if next_children_element.__len__() == 1:
             file_path = os.path.join(dir_path, next_children_element[0].text + ".html")
             href = next_children_element[0]['href']
-            # if not file_path in tf_python_path_list:
-            #     tf_python_path_list.append(file_path)
-            # else:
-            #     print(r'write to path_list has repeated data, file path i : "' + file_path + r'"')
             tf_python_href_path_dict[href] = file_path
             if os.path.exists(file_path):
                 continue
@@ -214,10 +202,6 @@ def create_dir_by_keras_api_strecture(keras_root_url, html_content, root_dir_pat
 
 def crawl_keras_data_to_local(keras_root_url, file_path, href, keras_href_path_dict, encoding):
     file_path = file_path.replace('\n', '')
-    # if not file_path in keras_path_list:
-    #     keras_path_list.append(file_path)
-    # else:
-    #     print(r'write to path_list has repeated data, file path i : "' + file_path + r'"')
     keras_href_path_dict[href] = file_path
     if os.path.exists(file_path):
         return
@@ -282,10 +266,7 @@ def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, m
         except ValueError:
             pass
 
-        # if not file_path in pytorch_path_list:
-        #     pytorch_path_list.append(file_path)
-        # else:
-        #     print(r'write to path_list has repeated data, file path i : "' + file_path + r'"')
+        # recursion must be after adding href to dict, so we can download the root page first
         pytorch_href_path_dict[href] = file_path
         if next_children_element.__len__() > 1:
             dfs_create_pytorch_dir(pytorch_root_url, next_children_element[1],
@@ -305,9 +286,10 @@ def dfs_create_pytorch_dir(pytorch_root_url, cur_element, dir_path, cur_depth, m
                     del_attr_all(address_relative_to_absolute(pytorch_content, pytorch_root_url), 'title'), '¶'))
     # delete the empty directory
     try:
-        os.removedirs(dir_path)
+        os.rmdir(dir_path)
     except OSError:
         pass
+
 
 def make_file_path_legal(path_str, replace_str):
     return path_str.replace('\\', replace_str). \

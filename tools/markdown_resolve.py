@@ -161,7 +161,6 @@ def tensor_flow_internal_links_convert(framework_name, href_path_dict, old_link)
     except KeyError:
         # if cannot find the relative file path, we think of it as an external link,
         # save it as before and process it later in external_links_convert function
-        # print(old_link)
         return old_link
 
 
@@ -194,9 +193,6 @@ def keras_internal_links_convert(framework_name, href_path_dict, old_link):
     except KeyError:
         matching_href = keras_get_matching_href(href_path_dict.keys(), index_link)
         if matching_href == '':
-            # if cannot find the relative file path, we think of it as an external link,
-            # save it as before and process it later in external_links_convert function
-            # print(old_link)
             return old_link
         else:
             res_path = urllib.request.quote(href_path_dict[matching_href])
@@ -232,9 +228,6 @@ def pytorch_internal_links_convert(framework_name, href_path_dict, old_link):
         return framework_name + r'/' + res_path[0:res_path.__len__() - 3] + (
             '' if last_title_content == None else r'?id=' + last_title_content)
     except KeyError:
-        # if cannot find the relative file path, we think of it as an external link,
-        # save it as before and process it later in external_links_convert function
-        # print(old_link)
         return old_link
 
 
