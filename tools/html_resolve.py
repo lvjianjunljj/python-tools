@@ -24,6 +24,8 @@ def delete_code_label_in_h(html_content, max_h_level=10):
 
 
 def address_relative_to_absolute(html_content, root_url):
+    if not root_url.endswith(r'/'):
+        root_url = root_url[0:root_url.rindex(r'/') + 1]
     soup = BeautifulSoup(html_content, 'html5lib')
     descendants = soup.descendants
     for descendant in descendants:

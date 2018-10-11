@@ -66,28 +66,31 @@ json_str = json_read.read()
 index_dict = eval(json_str)
 
 for framework_name in [keras_dir, pytorch_dir, tf_python_dir]:
-    # generate index.json file
-    shutil.copy(r'generate_index.js', os.path.join(root_md_dir, framework_name, r'generate_index.js'))
-    cmd = r'cd "' + os.path.join(root_md_dir, framework_name) + r'" && node generate_index.js'
-    subprocess.call(cmd, shell=True)
-    os.remove(os.path.join(root_md_dir, framework_name, r'generate_index.js'))
-
     # convert the internal links
-    mr.internal_links_convert(root_md_dir, framework_name, href_path_dict_list[framework_name], encoding)
+    mr.internal_links_convert(root_md_dir, framework_name, href_path_dict_list[framework_name],
+                              encoding)
 
     # convert the internal links in every framework directory
     mr.batch_external_links_convert(os.path.join(root_md_dir, framework_name), encoding)
+
+    # delete the hyperlink in title
+    mr.batch_clean_title(os.path.join(root_md_dir, framework_name), encoding)
+
+    # generate index.json file
+    # run this script after editing all markdown texts
+    shutil.copy(os.path.join(r'js_file', r'generate_index.js'),
+                os.path.join(root_md_dir, framework_name, r'generate_index.js'))
+    cmd = r'cd "' + os.path.join(root_md_dir, framework_name) + r'" && node generate_index.js'
+    subprocess.call(cmd, shell=True)
+    os.remove(os.path.join(root_md_dir, framework_name, r'generate_index.js'))
 
     # correct the size and version attribute of root index.json file
     index_dict[framework_name]['size'] = file_size.get_dirs_size(os.path.join(root_md_dir, framework_name))
     index_dict[framework_name]['version'] = index_version
 
-    # delete the hyperlink in title
-    mr.batch_clean_title(os.path.join(root_md_dir, framework_name), encoding)
-
     # package the directory
     file_compress.make_targz(os.path.join(root_md_dir, framework_name.lower() + r'.tar.gz'),
                              os.path.join(root_md_dir, framework_name))
 
-# save the change of root index.json file
-open(r'index.json', "w", encoding='utf-8').write(json.dumps(index_dict))
+    # save the change of root index.json file
+open(os.path.join(r'js_file', r'index.json'), "w", encoding=encoding).write(json.dumps(index_dict))
