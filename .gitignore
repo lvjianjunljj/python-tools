@@ -1,0 +1,6 @@
+# ignore dot files/directories
+.*
+!.gitignore
+
+__pycache__/
+.idea/*
